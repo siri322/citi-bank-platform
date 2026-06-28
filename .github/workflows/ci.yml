@@ -55,8 +55,8 @@ jobs:
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
-        # Simulate updating the helm values
+        echo "Simulating updating the helm values for GitOps..."
         # sed -i 's/tag: .*/tag: ${{ github.sha }}/g' kubernetes/helm/${{ matrix.service }}/values.yaml
-        git add kubernetes/helm/
-        git commit -m "Update ${{ matrix.service }} image to ${{ github.sha }}" || echo "No changes to commit"
+        # git add kubernetes/helm/
+        # git commit -m "Update ${{ matrix.service }} image to ${{ github.sha }}" || echo "No changes to commit"
         # git push origin main
