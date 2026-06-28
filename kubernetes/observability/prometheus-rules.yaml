@@ -1,0 +1,128 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: payment-service-rules
+  namespace: observability
+  labels:
+    app: kube-prometheus-stack
+    release: prometheus
+spec:
+  groups:
+  - name: payment-service.slos
+    rules:
+    # Availability SLI: Percentage of successful requests
+    - record: payment_service_availability:ratio
+      expr: >
+        sum(rate(payment_requests_total{status="success"}[5m])) 
+        / 
+        sum(rate(payment_requests_total[5m]))
+
+    # Latency SLI: 95th percentile latency
+    - record: payment_service_latency:95p
+      expr: >
+        histogram_quantile(0.95, sum(rate(payment_latency_seconds_bucket[5m])) by (le))
+
+  - name: payment-service.alerts
+    rules:
+    # Fast Burn Alert: Availability drops below 90% for 5 minutes
+    - alert: PaymentServiceAvailabilityFastBurn
+      expr: payment_service_availability:ratio < 0.90
+      for: 5m
+      labels:
+        severity: critical
+        team: sre-payments
+      annotations:
+        summary: "Payment Service Availability Fast Burn"
+        description: "Payment service availability has dropped below 90% for the last 5 minutes. Current value: {{ $value }}"
+
+    # Slow Burn Alert: Availability drops below 99% for 1 hour
+    - alert: PaymentServiceAvailabilitySlowBurn
+      expr: payment_service_availability:ratio < 0.99
+      for: 1h
+      labels:
+        severity: warning
+        team: sre-payments
+      annotations:
+        summary: "Payment Service Availability Slow Burn"
+        description: "Payment service availability has been consistently below 99% for 1 hour. Investigate potential degradation."
+
+    # Latency Alert: 95p latency exceeds 200ms
+    - alert: PaymentServiceHighLatency
+      expr: payment_service_latency:95p > 0.200
+      for: 5m
+      labels:
+        severity: warning
+        team: sre-payments
+      annotations:
+        summary: "Payment Service High Latency"
+        description: "Payment service 95th percentile latency is above 200ms (Current: {{ $value }}s)."
+
+  - name: infrastructure.alerts
+    rules:
+    # CPU usage > 75%
+    - alert: HighCpuUsage
+      expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 75
+      for: 5m
+      labels:
+        severity: warning
+        team: sre-infra
+      annotations:
+        summary: "High CPU Usage Warning"
+        description: "CPU usage is above 75% for 5m on instance {{ $labels.instance }}."
+
+    # Memory usage > 80%
+    - alert: HighMemoryUsage
+      expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 80
+      for: 5m
+      labels:
+        severity: warning
+        team: sre-infra
+      annotations:
+        summary: "High Memory Usage Warning"
+        description: "Memory usage is above 80% for 5m on instance {{ $labels.instance }}."
+
+    # Disk usage > 70%
+    - alert: HighDiskUsage
+      expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100 > 70
+      for: 10m
+      labels:
+        severity: warning
+        team: sre-infra
+      annotations:
+        summary: "High Disk Usage Warning"
+        description: "Root disk usage is above 70% for 10m on instance {{ $labels.instance }}."
+
+  - name: kubernetes.alerts
+    rules:
+    # Pod CrashLoopBackOff
+    - alert: PodCrashLooping
+      expr: rate(kube_pod_container_status_restarts_total[5m]) * 60 * 5 > 0
+      for: 10m
+      labels:
+        severity: critical
+        team: sre-platform
+      annotations:
+        summary: "Pod is crash looping"
+        description: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is restarting frequently."
+
+    # Node Down
+    - alert: NodeDown
+      expr: up{job="node-exporter"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        team: sre-infra
+      annotations:
+        summary: "Node is down"
+        description: "Node {{ $labels.instance }} has been down for more than 5 minutes."
+
+    # Kafka Consumer Lag High
+    - alert: KafkaConsumerLagHigh
+      expr: kafka_consumergroup_lag > 1000
+      for: 5m
+      labels:
+        severity: critical
+        team: sre-platform
+      annotations:
+        summary: "High Kafka Consumer Lag"
+        description: "Consumer group {{ $labels.consumergroup }} lag is above 1000 (Current: {{ $value }})."
