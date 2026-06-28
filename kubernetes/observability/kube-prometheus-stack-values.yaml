@@ -1,6 +1,11 @@
 grafana:
   enabled: true
   adminPassword: "admin"
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki-stack.observability.svc.cluster.local:3100/
+      access: proxy
 
 
 prometheus:
