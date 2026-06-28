@@ -1,23 +1,7 @@
 grafana:
   enabled: true
   adminPassword: "admin"
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-      - name: 'default'
-        orgId: 1
-        folder: ''
-        type: file
-        disableDeletion: false
-        editable: true
-        options:
-          path: /var/lib/grafana/dashboards/default
-  dashboards:
-    default:
-      sre-dashboard:
-        # We will mount this via ConfigMap later, but here we can define the skeleton
-        url: "https://raw.githubusercontent.com/kubernetes-monitoring/kubernetes-mixin/master/dashboards/compute-resources-cluster.json"
+
 
 prometheus:
   prometheusSpec:
