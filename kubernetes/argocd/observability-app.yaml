@@ -11,7 +11,7 @@ spec:
     targetRevision: 61.3.1
     helm:
       valueFiles:
-      - https://raw.githubusercontent.com/your-org/citi-bank-platform/main/kubernetes/observability/kube-prometheus-stack-values.yaml
+      - https://raw.githubusercontent.com/siri322/citi-bank-platform/main/kubernetes/observability/kube-prometheus-stack-values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: observability
@@ -31,7 +31,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-org/citi-bank-platform.git
+    repoURL: https://github.com/siri322/citi-bank-platform.git
     targetRevision: HEAD
     path: kubernetes/observability
     directory:
