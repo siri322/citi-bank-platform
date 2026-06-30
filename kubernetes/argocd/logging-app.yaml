@@ -13,6 +13,7 @@ spec:
       values: |
         loki:
           enabled: true
+          isDefault: false
         promtail:
           enabled: true
   destination:
