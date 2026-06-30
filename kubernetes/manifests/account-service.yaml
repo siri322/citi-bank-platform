@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: account-service
+  labels:
+    app: account-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: account-service
+  template:
+    metadata:
+      labels:
+        app: account-service
+    spec:
+      containers:
+      - name: account-service
+        image: citi-bank/account-service:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: account-service
+  labels:
+    app: account-service
+spec:
+  ports:
+  - port: 8000
+    targetPort: 8000
+    name: http
+  selector:
+    app: account-service
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: account-service-monitor
+  labels:
+    release: kube-prometheus-stack
+spec:
+  selector:
+    matchLabels:
+      app: account-service
+  endpoints:
+  - port: http
+    path: /metrics

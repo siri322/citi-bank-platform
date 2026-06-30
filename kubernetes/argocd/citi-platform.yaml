@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: 'https://github.com/your-org/citi-bank-platform.git'
+    repoURL: 'https://github.com/siri322/citi-bank-platform.git'
     targetRevision: HEAD
     path: kubernetes/manifests
   destination:
