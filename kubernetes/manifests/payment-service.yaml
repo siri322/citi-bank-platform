@@ -51,4 +51,4 @@ spec:
       app: payment-service
   endpoints:
   - port: http
-    path: /metrics
+    path: /metrics/

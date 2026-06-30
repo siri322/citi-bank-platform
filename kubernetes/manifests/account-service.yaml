@@ -48,4 +48,4 @@ spec:
       app: account-service
   endpoints:
   - port: http
-    path: /metrics
+    path: /metrics/
